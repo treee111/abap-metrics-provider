@@ -27,6 +27,10 @@ CLASS zcl_amp_c_bal_logs DEFINITION
       IMPORTING msgty       TYPE msgty
       RETURNING VALUE(type) TYPE string.
 
+    METHODS replace_unwanted_characters
+      IMPORTING bal_logs                         TYPE bal_logs
+      RETURNING VALUE(bal_log_wo_unwanted_chars) TYPE bal_logs.
+
 ENDCLASS.
 
 
@@ -46,6 +50,7 @@ CLASS zcl_amp_c_bal_logs IMPLEMENTATION.
       WHERE aldate = @date_current_run
       GROUP BY object, subobject.
 
+    bal_logs = replace_unwanted_characters( bal_logs ).
 
     LOOP AT bal_logs ASSIGNING FIELD-SYMBOL(<log>).
 
@@ -94,6 +99,15 @@ CLASS zcl_amp_c_bal_logs IMPLEMENTATION.
                      WHEN 'X' THEN 'exit'
                      WHEN 'S' THEN 'success'
                      ELSE msgty ).
+  ENDMETHOD.
+
+  METHOD replace_unwanted_characters.
+    bal_log_wo_unwanted_chars = bal_logs.
+
+    LOOP AT bal_log_wo_unwanted_chars ASSIGNING FIELD-SYMBOL(<log>).
+      REPLACE ALL OCCURRENCES OF '/' IN <log>-object WITH '_'.
+      REPLACE ALL OCCURRENCES OF '/' IN <log>-subobject WITH '_'.
+    ENDLOOP.
   ENDMETHOD.
 
 ENDCLASS.
